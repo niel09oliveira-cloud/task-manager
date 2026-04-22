@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" type="image/png" href="imagem-logo.png"/>
+</head>
+<body>
+
+  <div class="container">
+
+    <header>
+      <div class="header-left">
+        <h1>Organize Suas Tarefas</h1>
+        <p>ORGANIZE. FOQUE. CONQUISTE.</p>
+      </div>
+      <div class="header-right">
+        <div class="clock" id="clock"></div>
+        <div class="date" id="date"></div>
+        <div class="counter">
+          <span id="pending-count">0</span>
+          <small>Pendentes</small>
+        </div>
+      </div>
+    </header>
+
+    <div class="motivation" id="motivation"></div>
+
+    <div class="input-area">
+      <input
+        type="text"
+        class="task-input"
+        id="task-input"
+        placeholder="Nova tarefa..."
+        maxlength="120"
+      />
+      <button class="add-btn" id="add-btn">+ Adicionar</button>
+    </div>
+
+    <div class="cat-select" id="cat-select">
+      <span class="cat-select-label">Categoria:</span>
+      <button class="cat-pill" data-cat="trabalho">💼 Trabalho</button>
+      <button class="cat-pill" data-cat="pessoal">🏠 Pessoal</button>
+      <button class="cat-pill" data-cat="estudo">📚 Estudo</button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">Todas</button>
+      <button class="filter-btn" data-filter="pending">Pendentes</button>
+      <button class="filter-btn" data-filter="done">Concluídas</button>
+      <button class="filter-btn clear-btn" id="clear-done-btn">🧹 Limpar Concluídas</button>
+    </div>
+
+    <div class="cat-filters" id="cat-filters">
+      <button class="cat-filter-btn active" data-cat="">Todas</button>
+      <button class="cat-filter-btn" data-cat="trabalho">💼 Trabalho</button>
+      <button class="cat-filter-btn" data-cat="pessoal">🏠 Pessoal</button>
+      <button class="cat-filter-btn" data-cat="estudo">📚 Estudo</button>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Progresso Geral</span>
+        <span id="progress-text">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <ul class="task-list" id="task-list"></ul>
+
+    <div class="empty-state" id="empty-state">
+      <p id="empty-msg">Nenhuma Tarefa Aqui. Adicione uma Acima! 🚀</p>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <span class="chart-title">📈 Produtividade Semanal</span>
+        <span class="chart-subtitle" id="chart-total"></span>
+      </div>
+      <div class="chart" id="chart"></div>
+    </div>
+
+    <footer>
+      <p>© 2026 — Developed by <a href="https://github.com/niel09oliveira-cloud" target="_blank" rel="noopener noreferrer">Daniel</a></p>
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+  
+</body>
+</html>
