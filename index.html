@@ -39,11 +39,19 @@
       <button class="add-btn" id="add-btn">+ Adicionar</button>
     </div>
 
-    <div class="cat-select" id="cat-select">
-      <span class="cat-select-label">Categoria:</span>
-      <button class="cat-pill" data-cat="trabalho">💼 Trabalho</button>
-      <button class="cat-pill" data-cat="pessoal">🏠 Pessoal</button>
-      <button class="cat-pill" data-cat="estudo">📚 Estudo</button>
+    <div class="task-options">
+      <div class="cat-select" id="cat-select">
+        <span class="cat-select-label">Categoria:</span>
+        <button class="cat-pill" data-cat="trabalho">💼 Trabalho</button>
+        <button class="cat-pill" data-cat="pessoal">🏠 Pessoal</button>
+        <button class="cat-pill" data-cat="estudo">📚 Estudo</button>
+      </div>
+
+      <div class="due-row">
+        <span class="due-select-label">📅 Prazo:</span>
+        <input type="date" id="due-input" class="due-input"/>
+        <button class="clear-due-btn" id="clear-due-btn" title="Limpar prazo">✕</button>
+      </div>
     </div>
 
     <div class="filters">
