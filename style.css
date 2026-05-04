@@ -222,6 +222,7 @@ header {
   cursor: pointer;
   transition: border-color .2s;
   color-scheme: dark;
+  text-transform: uppercase;
 }
 
 .due-input:focus { border-color: var(--accent); }
