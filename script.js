@@ -2,6 +2,7 @@ let tasks = JSON.parse(localStorage.getItem('todopro-tasks') || '[]');
 let currentFilter    = 'all';
 let currentCategory  = '';
 let selectedCategory = '';
+let selectedPriority = ''; // nova variável de prioridade
 let dragSrcId        = null;
 
 // Track which tasks have their subtask section expanded
@@ -27,8 +28,10 @@ const catFilters   = document.getElementById('cat-filters');
 const catFilterBtns = document.querySelectorAll('.cat-filter-btn');
 const dueInput     = document.getElementById('due-input');
 const clearDueBtn  = document.getElementById('clear-due-btn');
+const priorityPills = document.querySelectorAll('.priority-pill');
 
 const catLabels = { trabalho: '💼 Trabalho', pessoal: '🏠 Pessoal', estudo: '📚 Estudo' };
+const priorityLabels = { alta: '🔴 Alta', media: '🟡 Média', baixa: '🟢 Baixa' };
 
 const phrases = [
   "O sucesso é a soma de pequenos esforços repetidos dia após dia. 💪",
@@ -92,6 +95,62 @@ function getDueStatus(dueDate, isDone) {
   return              { label: `📅 ${formatDueDate(dueDate)}`,      cls: 'normal'  };
 }
 
+// ── Notification API ──
+// A Notification API é uma API nativa do browser — não precisa de servidor, chave ou fetch.
+// Funciona igual ao localStorage: você acessa direto pelo browser.
+// Fluxo: pedimos permissão → guardamos ela → disparamos notificações quando necessário.
+
+function requestNotificationPermission() {
+  // O browser tem 3 estados: 'default' (nunca perguntado), 'granted' (permitido), 'denied' (bloqueado)
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function sendNotification(title, body) {
+  // Só dispara se o usuário tiver concedido permissão
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: 'imagem-logo.png' // ícone que aparece na notificação do sistema
+    });
+  }
+}
+
+function checkDueNotifications() {
+  // Roda a cada 1 hora para verificar tarefas com prazo se aproximando
+  // Guardamos no localStorage quais IDs já foram notificados para não repetir
+  const notified = JSON.parse(localStorage.getItem('todopro-notified') || '[]');
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  tasks.forEach(task => {
+    if (task.done || !task.dueDate) return;
+
+    const [Y, M, D] = task.dueDate.split('-').map(Number);
+    const due  = new Date(Y, M - 1, D);
+    const diff = Math.round((due - today) / 86400000);
+
+    const notifKey = `${task.id}-${diff}`; // chave única: id + dias restantes
+
+    if (notified.includes(notifKey)) return; // já notificou esse estado, pula
+
+    if (diff === 0) {
+      sendNotification('📅 Tarefa vence hoje!', `"${task.text}" precisa ser concluída hoje.`);
+      notified.push(notifKey);
+    } else if (diff === 1) {
+      sendNotification('⏰ Tarefa vence amanhã', `"${task.text}" vence amanhã.`);
+      notified.push(notifKey);
+    } else if (diff < 0) {
+      sendNotification('⚠️ Tarefa atrasada!', `"${task.text}" está ${Math.abs(diff)} dia(s) atrasada.`);
+      notified.push(notifKey);
+    }
+  });
+
+  localStorage.setItem('todopro-notified', JSON.stringify(notified));
+}
+
 // ── Subtask helpers ──
 
 function addSubtask(taskId, text) {
@@ -138,6 +197,7 @@ function addTask() {
     text,
     done: false,
     category: selectedCategory,
+    priority: selectedPriority, // salva a prioridade junto com a tarefa
     dueDate: dueInput.value,
     subtasks: [],
     createdAt: new Date().toISOString(),
@@ -147,6 +207,11 @@ function addTask() {
   tasks.unshift(task);
   input.value    = '';
   dueInput.value = '';
+
+  // Reseta seleção de prioridade
+  selectedPriority = '';
+  priorityPills.forEach(p => p.classList.remove('active'));
+
   save();
   render();
   input.focus();
@@ -290,12 +355,13 @@ function render() {
   }
 
   list.forEach(task => {
-    // Ensure legacy tasks have needed fields
     if (!task.subtasks)  task.subtasks = [];
     if (!task.dueDate)   task.dueDate  = '';
+    if (!task.priority)  task.priority = '';
 
     const li = document.createElement('li');
     li.className   = 'task-item' + (task.done ? ' completed' : '');
+    if (task.priority) li.classList.add(`priority-${task.priority}`);
     li.dataset.id  = task.id;
     li.draggable   = true;
 
@@ -305,7 +371,6 @@ function render() {
     const subDone     = subs.filter(s => s.done).length;
     const dueStatus   = getDueStatus(task.dueDate, task.done);
 
-    // Build badge strings
     const catBadge = task.category
       ? `<span class="cat-badge cat-${task.category}">${catLabels[task.category]}</span>`
       : '';
@@ -314,13 +379,17 @@ function render() {
       ? `<span class="due-badge due-${dueStatus.cls}">${dueStatus.label}</span>`
       : '';
 
+    // Badge de prioridade — só exibe se a tarefa tiver prioridade definida
+    const priorityBadge = task.priority
+      ? `<span class="priority-badge priority-badge-${task.priority}">${priorityLabels[task.priority]}</span>`
+      : '';
+
     const subtaskToggleLabel = subTotal === 0
       ? '+ subtarefa'
       : `${isExpanded ? '▾' : '▸'} ${subDone}/${subTotal}`;
 
     const subtaskToggle = `<button class="subtask-toggle${isExpanded ? ' open' : ''}" title="Subtarefas">${subtaskToggleLabel}</button>`;
 
-    // Build subtask section HTML
     const subtaskItemsHtml = subs.map(sub => `
       <li class="subtask-item${sub.done ? ' done' : ''}" data-sub-id="${sub.id}">
         <div class="subtask-check">
@@ -363,7 +432,7 @@ function render() {
         <div class="task-body">
           <span class="task-text">${escapeHtml(task.text)}</span>
           <div class="task-badges">
-            ${catBadge}${dueBadge}${subtaskToggle}
+            ${priorityBadge}${catBadge}${dueBadge}${subtaskToggle}
           </div>
         </div>
         <button class="delete-btn" title="Deletar">
@@ -437,7 +506,6 @@ function render() {
     li.addEventListener('dragstart', (e) => {
       dragSrcId = task.id;
       e.dataTransfer.effectAllowed = 'move';
-      // Small delay so the drag ghost looks right
       setTimeout(() => li.classList.add('dragging'), 0);
     });
 
@@ -449,7 +517,6 @@ function render() {
     li.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      // Clear all other highlights, set only this one
       document.querySelectorAll('.task-item').forEach(el => el.classList.remove('drag-over'));
       if (dragSrcId !== task.id) li.classList.add('drag-over');
     });
@@ -493,6 +560,21 @@ function escapeHtml(str) {
     .replace(/>/g,  '&gt;')
     .replace(/"/g,  '&quot;');
 }
+
+// ── Priority selection (for new task) ──
+priorityPills.forEach(pill => {
+  pill.addEventListener('click', () => {
+    const p = pill.dataset.priority;
+    if (selectedPriority === p) {
+      selectedPriority = '';
+      priorityPills.forEach(pp => pp.classList.remove('active'));
+    } else {
+      selectedPriority = p;
+      priorityPills.forEach(pp => pp.classList.remove('active'));
+      pill.classList.add('active');
+    }
+  });
+});
 
 // ── Category selection (for new task) ──
 catPills.forEach(pill => {
@@ -547,4 +629,11 @@ clearDoneBtn.addEventListener('click', clearDone);
 updateClock();
 updateMotivation();
 setInterval(updateClock, 1000);
+
+// Pede permissão de notificação ao carregar e verifica prazos
+requestNotificationPermission();
+checkDueNotifications();
+// Verifica novamente a cada 1 hora sem precisar recarregar a página
+setInterval(checkDueNotifications, 60 * 60 * 1000);
+
 render();

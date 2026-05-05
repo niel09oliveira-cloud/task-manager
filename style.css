@@ -15,6 +15,10 @@
   --cat-trabalho: #7f5af0;
   --cat-pessoal:  #2cb67d;
   --cat-estudo:   #f4a261;
+
+  --priority-alta:  #ef4565;
+  --priority-media: #f4c542;
+  --priority-baixa: #2cb67d;
 }
 
 html { scroll-behavior: smooth; }
@@ -140,7 +144,7 @@ header {
 
 .add-btn:active { transform: translateY(0); }
 
-/* ── Task options row (category + due date) ── */
+/* ── Task options row (category + priority + due date) ── */
 .task-options {
   display: flex;
   flex-direction: column;
@@ -193,6 +197,72 @@ header {
   border-color: var(--cat-estudo);
   color: var(--cat-estudo);
 }
+
+/* ── Priority select row ── */
+.priority-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.priority-select-label {
+  font-size: .75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+.priority-pill {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 99px;
+  padding: 5px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .78rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.priority-pill:hover { border-color: var(--accent); color: var(--text); }
+
+.priority-pill.active[data-priority="alta"] {
+  background: rgba(239,69,101,.15);
+  border-color: var(--priority-alta);
+  color: var(--priority-alta);
+}
+.priority-pill.active[data-priority="media"] {
+  background: rgba(244,197,66,.15);
+  border-color: var(--priority-media);
+  color: var(--priority-media);
+}
+.priority-pill.active[data-priority="baixa"] {
+  background: rgba(44,182,125,.15);
+  border-color: var(--priority-baixa);
+  color: var(--priority-baixa);
+}
+
+/* ── Priority badge on task ── */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: .7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  line-height: 1.4;
+}
+
+.priority-badge-alta  { background: rgba(239,69,101,.15); color: var(--priority-alta);  }
+.priority-badge-media { background: rgba(244,197,66,.15);  color: var(--priority-media); }
+.priority-badge-baixa { background: rgba(44,182,125,.15);  color: var(--priority-baixa); }
+
+/* ── Priority left-border accent on task card ── */
+.task-item.priority-alta::before  { background: var(--priority-alta) !important; opacity: 1 !important; }
+.task-item.priority-media::before { background: var(--priority-media) !important; opacity: 1 !important; }
+.task-item.priority-baixa::before { background: var(--priority-baixa) !important; opacity: 1 !important; }
 
 /* ── Due date row ── */
 .due-row {
@@ -477,7 +547,7 @@ header {
   cursor: pointer;
 }
 
-/* ── Task badges row (category + due + subtask toggle) ── */
+/* ── Task badges row (priority + category + due + subtask toggle) ── */
 .task-badges {
   display: flex;
   align-items: center;
